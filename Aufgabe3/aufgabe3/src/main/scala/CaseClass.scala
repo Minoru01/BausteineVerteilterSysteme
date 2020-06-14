@@ -1,0 +1,5 @@
+case class Count(text : String)
+case class Line(docLine : String)
+case class FilePath(path : String)
+case class Word(word: String)
+case class CountPart(value : Int)
