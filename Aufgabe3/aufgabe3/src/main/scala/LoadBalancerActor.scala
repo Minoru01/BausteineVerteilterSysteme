@@ -3,24 +3,32 @@ import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.routing.{Broadcast, RoundRobinPool}
 import com.typesafe.config.ConfigFactory
 
-
-class LoadBalancerActor extends Actor{
+/** LoadBalancerActor
+ *
+ * Sends the incomming words to all connected Actors with the given routerActor balanced
+ * if a Count is received the router broadcasts the Count to all connected Actors
+ * the Actor response with a CountPart message with their actual count for the String in Count
+ *
+ */
+class LoadBalancerActor(routerActor : ActorRef, routeeCount : Int) extends Actor{
+  var preservedSender : ActorRef = _
 
   private var valueParts = Seq[Int]()
-  private val routeeCount = 5
-  val router: ActorRef = context.actorOf(RoundRobinPool(routeeCount).props(Props[NewDatabaseActor]), "router")
 
   def receive : Receive = {
-    case Word(word) =>
-      router ! Word(word)
+    case w : Word =>
+      routerActor ! w
 
-    case Count(word) =>
-      router ! Broadcast(Count(word))
+    case c : Count =>
+      println("sends broadcast to DatabaseActor...")
+      preservedSender = sender()
+      routerActor ! Broadcast(c)
+
 
     case CountPart(value) =>
       valueParts = valueParts:+ value
       if (valueParts.size == routeeCount)
-        println("The selected word is " + valueParts.sum + " times in the text")
+        preservedSender ! OutputCount(valueParts.sum)
       else
         println(valueParts.size + " parts of Count makes: " + valueParts.sum + " times right now")
 
@@ -28,12 +36,20 @@ class LoadBalancerActor extends Actor{
   }
 }
 
-object Server {
+/** LoadBalancerServer
+ *
+ * For excercise 3:
+ * Creates the actor systems for the loadBalancer with the pool of DataBase Actors
+ *
+ */
+object LoadBalancerServer {
   def main(args: Array[String]): Unit = {
+    val system = ActorSystem("loadBalancerServer",ConfigFactory.load("server.conf"))
+    val loadBalancerActorName = "loadBalancerActor"
+    val numberOfRoutees = 5
+    val routerActor = system.actorOf(RoundRobinPool(numberOfRoutees).props(Props[DataBaseActor]), "router")
 
-val system = ActorSystem("server",ConfigFactory.load("server.conf"))
-    val loadBalancerActorName = "loadBalancerActor1"
-    val loadBalancer1 = system.actorOf(Props(classOf[LoadBalancerActor]), name = loadBalancerActorName)
+    system.actorOf(Props(classOf[LoadBalancerActor],routerActor, numberOfRoutees), name = loadBalancerActorName)
     println(loadBalancerActorName + " was created")
   }
 }
