@@ -1,40 +1,23 @@
-import akka.Done
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import akka.stream.ActorMaterializer
 import spray.json.DefaultJsonProtocol._
 
-import scala.concurrent.Future
 import scala.io.StdIn
 
 object WebServer {
   // needed to run the route
   implicit val system = ActorSystem()
-  implicit val materializer = ActorMaterializer()
+
   // needed for the future map/flatmap in the end and future in fetchItem and saveOrder
   implicit val executionContext = system.dispatcher
-
-  var orders: List[Item] = Nil
-
-  // domain model
-  final case class Item(name: String, frequency: Long)
-  final case class Order(items: List[Item])
 
   // formats for unmarshalling and marshalling
   implicit val itemFormat = jsonFormat2(Item)
   implicit val orderFormat = jsonFormat1(Order)
-
-  def saveOrder(order: Order): Future[Done] = {
-    orders = order match {
-      case Order(items) => items ::: orders
-      case _            => orders
-    }
-    Future { Done }
-  }
 
   def main(args: Array[String]) {
 
@@ -46,8 +29,8 @@ object WebServer {
               case "" =>
                 complete(StatusCodes.NotFound)
               case name : String =>
-                complete(Item(name,12))
 
+                complete(Item(name,12))
             }
           }
         },
@@ -57,6 +40,7 @@ object WebServer {
               case "" =>
                 complete(StatusCodes.BadRequest)
               case name : String =>
+                
                 complete(Item(name, 13))
             }
           }

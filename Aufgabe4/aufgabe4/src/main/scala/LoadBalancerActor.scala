@@ -3,9 +3,9 @@ import akka.routing.Broadcast
 
 /** LoadBalancerActor
  *
- * Sends the incomming words to all connected Actors with the given routerActor balanced
- * if a Count is received the router broadcasts the Count to all connected Actors
- * the Actor response with a CountPart message with their actual count for the String in Count
+ * Sends the incomming words to all connected Actors with the given routerActor.
+ * If a Count is received the router broadcasts the Count to all connected Actors.
+ * The Actor response with a CountPart message with their actual count for the String in Count.
  *
  */
 class LoadBalancerActor(routerActor : ActorRef, routeeCount : Int) extends Actor{
@@ -24,8 +24,11 @@ class LoadBalancerActor(routerActor : ActorRef, routeeCount : Int) extends Actor
 
     case CountPart(value) =>
       valueParts = valueParts:+ value
-      if (valueParts.size == routeeCount)
+      if (valueParts.size == routeeCount) {
         preservedSender ! OutputCount(valueParts.sum)
+        println("Ergebnis gesendet: " + valueParts.sum)
+        valueParts = Seq[Int]()
+      }
 
     case unhandled => println(self.path.name + ": Received unhandled message: " + unhandled)
   }
