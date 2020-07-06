@@ -2,6 +2,8 @@ import akka.actor.{ActorSystem, Props}
 import akka.routing.RoundRobinPool
 import com.typesafe.config.ConfigFactory
 
+import scala.io.StdIn
+
 /** LoadBalancerServer
  *
  * For excercise 3:
@@ -10,6 +12,7 @@ import com.typesafe.config.ConfigFactory
  */
 object LoadBalancerServer {
   def main(args: Array[String]): Unit = {
+
     val system = ActorSystem("loadBalancerServer",ConfigFactory.load("server.conf"))
     val loadBalancerActorName = "loadBalancerActor"
     val numberOfRoutees = 5
@@ -17,5 +20,7 @@ object LoadBalancerServer {
 
     system.actorOf(Props(classOf[LoadBalancerActor],routerActor, numberOfRoutees), name = loadBalancerActorName)
     println(loadBalancerActorName + " was created")
+    StdIn.readLine()
   }
 }
+

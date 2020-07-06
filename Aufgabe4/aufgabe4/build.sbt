@@ -27,3 +27,6 @@ libraryDependencies += "com.typesafe.akka" %% "akka-stream" % "2.5.26"
 
 // for JSON
 libraryDependencies += "com.typesafe.akka" %% "akka-http-spray-json" % "10.1.12"
+
+//Zookeeper
+libraryDependencies += "org.apache.zookeeper" % "zookeeper" % "3.6.1"
